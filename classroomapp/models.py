@@ -1,6 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import  User
 from django.utils import timezone
+import random
+import string
 
 # Create your models here.
 
@@ -18,10 +20,17 @@ class Teacher(models.Model):
         return self.name
 
 
+def key_generator():
+    key = ''.join(random.choice(string.digits) for x in range(6))
+    if Classroom.objects.filter(class_code=key).exists():
+        key = key_generator()
+    return key
+
+
 class Classroom(models.Model):
     class_name = models.CharField(max_length=256)
     teacher = models.ForeignKey(Teacher,on_delete=models.CASCADE)
-    class_code = models.CharField(max_length=6,default='', unique=True)
+    class_code = models.CharField(max_length=6,default=key_generator, unique=True)
     level = models.CharField(max_length=256,default='')
 
     image = models.ImageField(upload_to='\image',null=True,blank=True)
@@ -32,10 +41,6 @@ class Classroom(models.Model):
     def __str__(self):
         return self.class_name
 
-    def save(self, *args, **kwargs):
-        if not self.class_code:
-            self.class_code = ''.join(str(random.randint(0, 9)) for _ in range(6))
-        super(Classroom, self).save(*args, **kwargs)
 
 
 class Mission(models.Model):
